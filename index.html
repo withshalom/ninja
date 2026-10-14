@@ -36,7 +36,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;outlin
 #hint{color:var(--mut);flex:1;min-width:14em}
 select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--bd);border-radius:2px;padding:5px 6px}
 .hide{display:none!important}
-@media(pointer:coarse){button,label.b,select,#cmd,#num{min-height:40px}}
+@media(pointer:coarse){button,label.b,select,#cmd,#num{min-height:40px}body{height:100dvh}}
+@media(max-width:700px),(pointer:coarse){footer{gap:4px 10px;padding:4px 8px}#pos{min-width:0}#cmd{flex:1 1 100%;width:auto;min-width:0}#num{flex:1 1 8em;width:auto}#hint{flex:1 1 100%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 .brand{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;letter-spacing:.14em}.brand b{color:var(--hot)}.brand svg{width:16px;height:16px;fill:var(--hot)}
 </style>
 </head>
@@ -527,6 +528,7 @@ new ResizeObserver(()=>{
   if(!started){started=true;fit()}
   redraw()}).observe($('#wrap'));
 matchMedia('(prefers-color-scheme:dark)').addEventListener('change',redraw);
+if(window.visualViewport){const vf=()=>{document.body.style.height=visualViewport.height+'px';scrollTo(0,0);redraw()};visualViewport.addEventListener('resize',vf);vf()}
 new MutationObserver(redraw).observe(document.documentElement,{attributes:true});
 ui();
 </script>
