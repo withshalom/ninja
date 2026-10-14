@@ -3,13 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>NinjaCAD</title>
+<title>NinjaCAD · Quick. Quiet. Precise.</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23d7263d' fill-rule='evenodd' d='M12 1l3 8 8 3-8 3-3 8-3-8-8-3 8-3z M12 10.2a1.8 1.8 0 100 3.6 1.8 1.8 0 000-3.6z'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#111418" media="(prefers-color-scheme:dark)">
+<meta name="theme-color" content="#ebe7dd" media="(prefers-color-scheme:light)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#e9e7e0;--g1:#dcd9cf;--g2:#c9c5b8;--ink:#1f2326;--ui:#f6f5f1;--bd:#cbc7ba;--mut:#5f6469;--hot:#c94a05;--sel:#0a63b5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#1b1e22;--g1:#262a2f;--g2:#363b42;--ink:#e8e6df;--ui:#23272c;--bd:#3a3f46;--mut:#9aa0a6;--hot:#ff8a3d;--sel:#5fb0ff}}
-:root[data-theme=dark]{--bg:#1b1e22;--g1:#262a2f;--g2:#363b42;--ink:#e8e6df;--ui:#23272c;--bd:#3a3f46;--mut:#9aa0a6;--hot:#ff8a3d;--sel:#5fb0ff}
+:root{--bg:#111418;--g1:#191d22;--g2:#262b32;--ink:#e9e7e1;--ui:#181b20;--bd:#2c3139;--mut:#8e959d;--hot:#ff4d5e;--sel:#ff4d5e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#ebe7dd;--g1:#dfdacd;--g2:#cdc7b7;--ink:#16181b;--ui:#f5f2ea;--bd:#cdc7b9;--mut:#5c6166;--hot:#d7263d;--sel:#d7263d}}
+:root[data-theme=light]{--bg:#ebe7dd;--g1:#dfdacd;--g2:#cdc7b7;--ink:#16181b;--ui:#f5f2ea;--bd:#cdc7b9;--mut:#5c6166;--hot:#d7263d;--sel:#d7263d}
 *{box-sizing:inherit}
 html,body{height:100%;margin:0}
 body{display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:var(--bg);color:var(--ink);font:500 14px/1.3 Barlow,system-ui,sans-serif;overflow:hidden}
@@ -17,26 +20,28 @@ header,footer{background:var(--ui);display:flex;flex-wrap:wrap;gap:6px 14px;alig
 header{border-bottom:1px solid var(--bd)}
 footer{border-top:1px solid var(--bd);font-variant-numeric:tabular-nums}
 .grp{display:flex;gap:2px}
-button,label.b{font:inherit;color:inherit;background:transparent;border:1px solid var(--bd);padding:5px 10px;border-radius:4px;cursor:pointer;position:relative}
+button,label.b{font:inherit;color:inherit;background:transparent;border:1px solid var(--bd);padding:5px 10px;border-radius:2px;cursor:pointer;position:relative}
 button:hover:not(:disabled),label.b:hover{background:var(--g1)}
-button[aria-pressed=true]{background:var(--ink);color:var(--ui);border-color:var(--ink)}
+button[aria-pressed=true]{background:var(--g1);box-shadow:inset 0 -2px var(--hot)}
 button:disabled{opacity:.4;cursor:default}
 kbd{font:inherit;margin-left:6px;opacity:.6}
 :focus-visible,label.b:focus-within{outline:2px solid var(--sel);outline-offset:1px}
 #file{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
 #wrap{position:relative;min-height:0}
 canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;outline-offset:-2px}
-#num,#cmd{width:10em;font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--bd);border-radius:4px;padding:4px 6px}
+#num,#cmd{width:10em;font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--bd);border-radius:2px;padding:4px 6px}
 #cmd{width:22em;max-width:100%}
 #pos{min-width:11em}
 #read{font-weight:600}
 #hint{color:var(--mut);flex:1;min-width:14em}
-select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--bd);border-radius:4px;padding:5px 6px}
+select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--bd);border-radius:2px;padding:5px 6px}
 .hide{display:none!important}
+.brand{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;letter-spacing:.14em}.brand b{color:var(--hot)}.brand svg{width:16px;height:16px;fill:var(--hot)}
 </style>
 </head>
 <body>
 <header>
+  <div class="brand" role="img" aria-label="NinjaCAD"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 1l3 8 8 3-8 3-3 8-3-8-8-3 8-3z M12 10.2a1.8 1.8 0 100 3.6 1.8 1.8 0 000-3.6z"/></svg><span><b>NINJA</b>CAD</span></div>
   <div class="grp" id="tools" role="group" aria-label="Tools">
     <button data-t="select">Select<kbd>V</kbd></button>
     <button data-t="line">Line<kbd>L</kbd></button>
@@ -359,12 +364,12 @@ function draw(){
   for(const o of E){if(!vis(o)||!sel.has(o)&&!inV(o))continue;const s=sel.has(o),y=lay(o);cx.strokeStyle=s?c('--sel'):y&&y.hue!=null?`hsl(${y.hue} 65% 48%)`:c('--ink');cx.lineWidth=s?2.5:1.6*(y&&y.w||1);cx.setLineDash(y&&y.dash&&!s?[8,4]:[]);stroke(o)}cx.setLineDash([]);
   const pv=preview();
   if(pv){cx.setLineDash([6,4]);cx.strokeStyle=c('--hot');cx.lineWidth=1.5;stroke(pv);cx.setLineDash([])}
-  if(tool=='select'&&sel.size==1){const o=[...sel][0];if(vis(o))for(const[q]of G(o)){const s=w2s(q);cx.fillStyle=c('--bg');cx.strokeStyle=c('--sel');cx.lineWidth=1.5;cx.fillRect(s[0]-4,s[1]-4,8,8);cx.strokeRect(s[0]-4,s[1]-4,8,8)}}
+  if(tool=='select'&&sel.size==1){const o=[...sel][0];if(vis(o))for(const[q]of G(o)){const s=w2s(q);cx.fillStyle=c('--bg');cx.strokeStyle=c('--sel');cx.lineWidth=1.5;cx.beginPath();cx.moveTo(s[0],s[1]-5);cx.lineTo(s[0]+5,s[1]);cx.lineTo(s[0],s[1]+5);cx.lineTo(s[0]-5,s[1]);cx.closePath();cx.fill();cx.stroke()}}
   if(BASE){const s=w2s(BASE);cx.strokeStyle=c('--hot');cx.lineWidth=1.5;cx.beginPath();cx.moveTo(s[0],s[1]-7);cx.lineTo(s[0]+7,s[1]);cx.lineTo(s[0],s[1]+7);cx.lineTo(s[0]-7,s[1]);cx.closePath();cx.stroke()}
   if(drag&&drag.box){cx.setLineDash([4,3]);cx.strokeStyle=c('--sel');cx.lineWidth=1;cx.strokeRect(drag.from[0],drag.from[1],drag.to[0]-drag.from[0],drag.to[1]-drag.from[1]);cx.setLineDash([])}
   if(sp&&!(drag&&drag.pan)){
     const p=w2s(sp.w);cx.strokeStyle=c('--hot');cx.lineWidth=1.5;
-    if(sp.k=='obj')cx.strokeRect(p[0]-6,p[1]-6,12,12);
+    if(sp.k=='obj'){cx.beginPath();cx.moveTo(p[0],p[1]-6);cx.lineTo(p[0]+6,p[1]);cx.lineTo(p[0],p[1]+6);cx.lineTo(p[0]-6,p[1]);cx.closePath();cx.stroke()}
     else{cx.beginPath();cx.moveTo(p[0]-5,p[1]);cx.lineTo(p[0]+5,p[1]);cx.moveTo(p[0],p[1]-5);cx.lineTo(p[0],p[1]+5);cx.stroke()}}}
 function status(){
   $('#pos').textContent=sp?`X ${fv(sp.w[0])}   Y ${fv(sp.w[1])}  ${UN}`:'';
@@ -388,7 +393,7 @@ function ui(){
   const cy=Lay.find(x=>x.id==cl)||Lay[0];cl=cy.id;$('#lay').replaceChildren(...Lay.map(y=>new Option((y.vis?'':'(hidden) ')+y.name,y.id,false,y.id==cl)));$('#bLayVis').textContent=(cy.vis?'Hide':'Show')+' layer';$('#bLayMove').disabled=!sel.size;
   const n=$('#num');n.classList.toggle('hide',!pts.length||tool=='arc'||tool=='dim');
   n.placeholder=tool=='rect'?'Width, height + Enter':tool=='circ'?'Radius + Enter':'Length + Enter';
-  if(!say.on)$('#hint').textContent=HINT[tool]?HINT[tool](pts.length):tool=='select'?'Click to select (drag the squares to reshape), drag to move, Shift+drag to box select, drag empty space to pan, scroll to zoom. Units: '+UN+' (units mm | in).'
+  if(!say.on)$('#hint').textContent=HINT[tool]?HINT[tool](pts.length):tool=='select'?'Click to select (drag the diamonds to reshape), drag to move, Shift+drag to box select, drag empty space to pan, scroll to zoom. Units: '+UN+' (units mm | in).'
     :pts.length?'Click for the next point. Type a number for an exact size. Right-click or Esc to finish.':'Click to place the first point.';
   cv.style.cursor=space?'grab':tool=='select'?'default':'crosshair';
   redraw()}
