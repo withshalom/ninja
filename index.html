@@ -36,6 +36,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;outlin
 #hint{color:var(--mut);flex:1;min-width:14em}
 select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--bd);border-radius:2px;padding:5px 6px}
 .hide{display:none!important}
+@media(pointer:coarse){button,label.b,select,#cmd,#num{min-height:40px}}
 .brand{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;letter-spacing:.14em}.brand b{color:var(--hot)}.brand svg{width:16px;height:16px;fill:var(--hot)}
 </style>
 </head>
@@ -119,7 +120,8 @@ function gridQ(x,y,r){
   const out=new Set(big);
   for(let a=a0;a<=a1;a++)for(let d=b0;d<=b1;d++){const l=cells.get(a+','+d);if(l)for(const i of l)out.add(i)}
   return[...out].sort((u,v)=>u-v)}
-let bx=null,tapAt=null;
+let bx=null,aim=0,nav=false,gest=null;const PT=new Map(),AIM=50,CP=matchMedia('(pointer:coarse)').matches,SN=CP?18:10;
+function gestMove(){const[a,b]=[...PT.values()],r=cv.getBoundingClientRect(),m=[(a[0]+b[0])/2-r.left,(a[1]+b[1])/2-r.top],d=Math.hypot(a[0]-b[0],a[1]-b[1]);if(gest&&gest.d>0&&d>0){zoomAt(gest.m,d/gest.d);V.x+=m[0]-gest.m[0];V.y+=m[1]-gest.m[1]}gest={m,d};redraw()}
 function outline(o){
   if(o.t=='circ'||o.t=='arc'){const a0=o.t=='arc'?o.s:0,sp_=o.t=='arc'?span(o):Math.PI*2,n=Math.max(8,Math.ceil(sp_*8)),r=[];for(let i=0;i<=n;i++){const a=a0+sp_*i/n;r.push([o.c[0]+o.r*Math.cos(a),o.c[1]+o.r*Math.sin(a)])}return r}
   if(o.t=='line')return[o.a,o.b];
@@ -135,14 +137,14 @@ function bxRect(){return[Math.min(bx.a[0],bx.b[0]),Math.min(bx.a[1],bx.b[1]),Mat
 function finishBox(add){const[x0,y0,x1,y1,cr]=bxRect();if(!add)sel.clear();
   for(const o of E)if(vis(o)&&ed(o)&&boxHit(o,x0,y0,x1,y1,cr)){sel.add(o);if(o.g!=null)E.forEach(x=>{if(x.g===o.g)sel.add(x)})}
   bx=null;ui();redraw()}
-function pick(e){const w=s2w(e);let best=null,bd=7/V.s;for(const i of gridQ(w[0],w[1],bd)){const o=E[i];if(!ed(o))continue;const d=dist(o,w);if(d<=bd){bd=d;best=o}}return best}
+function pick(e){const w=s2w(e);let best=null,bd=(CP?14:7)/V.s;for(const i of gridQ(w[0],w[1],bd)){const o=E[i];if(!ed(o))continue;const d=dist(o,w);if(d<=bd){bd=d;best=o}}return best}
 function snapAt(e,skip){
   let w=s2w(e),k=null;
-  if(opt.obj){let best=10;for(const i of gridQ(w[0],w[1],10/V.s)){const o=E[i];if(!vis(o)||skip&&sel.has(o))continue;for(const p of keyPts(o)){const s=w2s(p),d=Math.hypot(s[0]-e[0],s[1]-e[1]);if(d<best){best=d;w=p;k='obj'}}}}
+  if(opt.obj){let best=SN;for(const i of gridQ(w[0],w[1],SN/V.s)){const o=E[i];if(!vis(o)||skip&&sel.has(o))continue;for(const p of keyPts(o)){const s=w2s(p),d=Math.hypot(s[0]-e[0],s[1]-e[1]);if(d<best){best=d;w=p;k='obj'}}}}
   if(!k&&opt.grid){const g=gstep();w=[Math.round(w[0]/g)*g,Math.round(w[1]/g)*g];k='grid'}
   return{w:w.map(R6),k}}
 function cur(e){
-  const r=cv.getBoundingClientRect();mp=[e.clientX-r.left,e.clientY-r.top];sp=snapAt(mp,drag&&(drag.move||drag.grip));
+  const r=cv.getBoundingClientRect();mp=[e.clientX-r.left,e.clientY-r.top-(aim&&e.pointerType=='touch'?AIM:0)];sp=snapAt(mp,drag&&(drag.move||drag.grip));
   if((tool=='line'||tool=='poly')&&pts.length&&(opt.ortho||shift)){const a=pts[pts.length-1],p=sp.w;sp.w=Math.abs(p[0]-a[0])>=Math.abs(p[1]-a[1])?[p[0],a[1]]:[a[0],p[1]]}}
 
 /* entity kinds: d=distance k=key points b=bounds s=canvas path mv=move v=svg ok=validate n=normalize info=readout */
@@ -412,7 +414,7 @@ function ui(){
   const cy=Lay.find(x=>x.id==cl)||Lay[0];cl=cy.id;$('#lay').replaceChildren(...Lay.map(y=>new Option((y.vis?'':'(hidden) ')+y.name,y.id,false,y.id==cl)));$('#bLayVis').textContent=(cy.vis?'Hide':'Show')+' layer';$('#bLayMove').disabled=!sel.size;
   const n=$('#num');n.classList.toggle('hide',!pts.length||tool=='arc'||tool=='dim');
   n.placeholder=tool=='rect'?'Width, height + Enter':tool=='circ'?'Radius + Enter':'Length + Enter';
-  if(!say.on)$('#hint').textContent=HINT[tool]?HINT[tool](pts.length):tool=='select'?'Click to select (drag the shurikens to reshape), drag to move, drag empty space (or click twice) to box select: right = window, left = crossing, Shift adds; middle-drag or Space to pan; scroll to zoom. Units: '+UN+' (units mm | in).'
+  if(!say.on)$('#hint').textContent=HINT[tool]?HINT[tool](pts.length):tool=='select'?'Click to select (drag the shurikens to reshape), drag to move, drag empty space (or click twice) to box select: right = window, left = crossing, Shift adds; middle-drag or Space to pan; scroll to zoom. Touch: two fingers pan and zoom; drag the crosshair, lift to place. Units: '+UN+' (units mm | in).'
     :pts.length?'Click for the next point. Type a number for an exact size. Right-click or Esc to finish.':'Click to place the first point.';
   cv.style.cursor=space?'grab':tool=='select'?'default':'crosshair';
   redraw()}
@@ -420,25 +422,32 @@ function setTool(t){say.on=0;tool=t;pts=[];pk=null;if(t!='select')sel.clear();ui
 
 /* input */
 cv.addEventListener('mousedown',e=>{if(e.button==1)e.preventDefault()});cv.addEventListener('auxclick',e=>e.preventDefault());
-cv.addEventListener('pointerup',e=>{if(bx&&bx.down){bx.down=false;if(bx.mv)finishBox(e.shiftKey)}else if(tapAt&&Math.hypot(e.clientX-tapAt[0],e.clientY-tapAt[1])<6){const m=s2w(mp);bx={a:m,b:m,down:false,mv:false,s:mp.slice()}}tapAt=null;redraw()});
+cv.addEventListener('pointerup',e=>{
+  const th=e.pointerType=='touch';if(th){PT.delete(e.pointerId);if(PT.size<2)gest=null}
+  if(!nav){if(bx&&bx.down){bx.down=false;if(bx.mv)finishBox(e.shiftKey);else if(th)bx=null}else if(aim){aim=0;place(sp.w);ui()}}
+  if(th&&!PT.size){nav=false;aim=0}redraw()});
+cv.addEventListener('pointercancel',e=>{PT.delete(e.pointerId);if(PT.size<2)gest=null;aim=0;drag=null;if(bx&&bx.down)bx=null;if(!PT.size)nav=false;redraw()});
 cv.addEventListener('pointerdown',e=>{
   if(e.button==2)return;
-  cv.focus();cv.setPointerCapture(e.pointerId);cur(e);
+  cv.focus();cv.setPointerCapture(e.pointerId);
+  if(e.pointerType=='touch'){PT.set(e.pointerId,[e.clientX,e.clientY]);if(PT.size>1){nav=true;drag=null;bx=null;aim=0;gest=null;gestMove();return}if(e.button==0&&tool!='select')aim=1}
+  cur(e);
   const pan=()=>({pan:1,sx:e.clientX,sy:e.clientY,vx:V.x,vy:V.y});
   if(bx&&e.button==0&&!space){if(tool=='select'){bx.b=s2w(mp);finishBox(e.shiftKey);return}bx=null}
   if(e.button==1||space)drag=pan();
   else if(tool=='select'){
-    const gp=sel.size==1&&G([...sel][0]).find(([q])=>{const s=w2s(q);return Math.hypot(s[0]-mp[0],s[1]-mp[1])<9});if(gp){drag={grip:1,set:gp[1]};ui();return}
+    const gp=sel.size==1&&G([...sel][0]).find(([q])=>{const s=w2s(q);return Math.hypot(s[0]-mp[0],s[1]-mp[1])<(CP?22:9)});if(gp){drag={grip:1,set:gp[1]};ui();return}
     const h=pick(mp);
     if(h){
       if(e.shiftKey&&sel.has(h))sel.delete(h);
       else{if(!sel.has(h)&&!e.shiftKey)sel.clear();sel.add(h);if(h.g!=null)E.forEach(x=>{if(x.g===h.g)sel.add(x)});drag={move:1,from:sp.w,orig:[...sel].map(o=>[o,clone(o)])}}}
-    else{if(!e.shiftKey)sel.clear();if(e.pointerType=='touch'){drag=pan();tapAt=[e.clientX,e.clientY]}else bx={a:s2w(mp),b:s2w(mp),down:true,mv:false,s:mp.slice()}}}
-  else place(sp.w);
+    else{if(!e.shiftKey)sel.clear();bx={a:s2w(mp),b:s2w(mp),down:true,mv:false,s:mp.slice()}}}
+  else if(!aim)place(sp.w);
   ui()});
 cv.addEventListener('pointermove',e=>{
+  if(e.pointerType=='touch'&&PT.has(e.pointerId)){PT.set(e.pointerId,[e.clientX,e.clientY]);if(PT.size>1){gestMove();return}if(nav)return}
   cur(e);
-  if(bx){bx.b=s2w(mp);if(bx.down&&Math.hypot(mp[0]-bx.s[0],mp[1]-bx.s[1])>4)bx.mv=true;redraw()}
+  if(bx){bx.b=s2w(mp);if(bx.down&&Math.hypot(mp[0]-bx.s[0],mp[1]-bx.s[1])>(e.pointerType=='touch'?8:4))bx.mv=true;redraw()}
   if(drag&&drag.pan){V.x=drag.vx+e.clientX-drag.sx;V.y=drag.vy+e.clientY-drag.sy}
   else if(drag&&drag.grip){if(!drag.moved){snapshot();drag.moved=true}drag.set(sp.w)}
   else if(drag&&drag.box)drag.to=mp.slice();
