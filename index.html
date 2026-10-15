@@ -36,14 +36,17 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;outlin
 #hint{color:var(--mut);flex:1;min-width:14em}
 select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--bd);border-radius:2px;padding:5px 6px}
 .hide{display:none!important}
+label.b{display:inline-flex;align-items:center;justify-content:center}
+#menu{position:fixed;z-index:10;min-width:11em;display:flex;flex-direction:column;background:var(--ui);border:1px solid var(--bd);border-radius:2px;padding:3px;box-shadow:0 6px 20px #0006}#menu button{border-color:transparent;text-align:left;white-space:nowrap}
+dialog{background:var(--ui);color:var(--ink);border:1px solid var(--bd);border-radius:2px;padding:12px}dialog::backdrop{background:#0008}#nmIn{font:inherit;background:var(--bg);color:var(--ink);border:1px solid var(--bd);border-radius:2px;padding:6px;width:14em;margin:6px 0 10px}dialog .grp{gap:6px;justify-content:flex-end}
 @media(pointer:coarse){button,label.b,select,#cmd,#num{min-height:40px}body{height:100dvh}}
 @media(max-width:700px),(pointer:coarse){footer{gap:4px 10px;padding:4px 8px}#pos{min-width:0}#cmd{flex:1 1 100%;width:auto;min-width:0}#num{flex:1 1 8em;width:auto}#hint{flex:1 1 100%;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}header{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;gap:4px 10px;padding:4px 8px}header::-webkit-scrollbar{display:none}header>*{flex:0 0 auto}button,label.b,select{white-space:nowrap}kbd{display:none}}
-.brand{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;letter-spacing:.14em}.brand b{color:var(--hot)}.brand svg{width:16px;height:16px;fill:var(--hot)}
+.brand{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;letter-spacing:.14em}.brand{border-color:transparent}.car{font-size:10px;opacity:.6;letter-spacing:0}.brand b{color:var(--hot)}.brand svg{width:16px;height:16px;fill:var(--hot)}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand" role="img" aria-label="NinjaCAD"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 1l3 8 8 3-8 3-3 8-3-8-8-3 8-3z M12 10.2a1.8 1.8 0 100 3.6 1.8 1.8 0 000-3.6z"/></svg><span><b>NINJA</b>CAD</span></div>
+  <button class="brand" id="bMenu" aria-haspopup="menu" aria-expanded="false" aria-label="NinjaCAD menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 1l3 8 8 3-8 3-3 8-3-8-8-3 8-3z M12 10.2a1.8 1.8 0 100 3.6 1.8 1.8 0 000-3.6z"/></svg><span><b>NINJA</b>CAD</span><span class="car" aria-hidden="true">▾</span></button>
   <div class="grp" id="tools" role="group" aria-label="Tools">
     <button data-t="select">Select<kbd>V</kbd></button>
     <button data-t="line">Line<kbd>L</kbd></button>
@@ -67,9 +70,9 @@ select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--bd
     <button id="bIn" aria-label="Zoom in">+</button><button id="bOut" aria-label="Zoom out">&minus;</button><button id="bFit">Fit</button>
   </div>
   <div class="grp">
+    <label class="b">Open .nja<input id="file" type="file" accept=".nja" aria-label="Open a .nja drawing"></label>
     <button id="bSave" class="hide">Save .nja</button>
     <button id="bSvg" class="hide">Export .svg</button>
-    <label class="b">Open<input id="file" type="file" accept=".nja" aria-label="Open a drawing"></label>
   </div>
 <div class="grp" role="group" aria-label="Layers"><select id="lay" aria-label="Current layer"></select><button id="bLayNew">New layer</button><button id="bLayVis">Hide layer</button><button id="bLayMove">Move selection here</button></div>
 </header>
@@ -81,6 +84,8 @@ select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--bd
   <input id="num" class="hide">
   <span id="hint"></span>
 </footer>
+<div id="menu" class="hide" role="menu"><button role="menuitem" data-a="open">Open .nja</button><button role="menuitem" id="mSave" data-a="save">Save .nja</button><button role="menuitem" id="mSvg" data-a="svg">Export .svg</button></div>
+<dialog id="nmDlg"><form method="dialog"><label>Drawing name<br><input id="nmIn" autocomplete="off" spellcheck="false"> .nja</label><div class="grp"><button type="button" id="nmNo">Cancel</button><button value="ok">Save</button></div></form></dialog>
 <script>
 const $=s=>document.querySelector(s),cv=$('#cv'),cx=cv.getContext('2d'),R6=v=>Math.round(v*1e6)/1e6;
 let E=[],U=[],Rd=[],sel=new Set(),tool='select',pts=[],mp=[0,0],sp=null,V={s:4,x:60,y:400},W=1,H=1,dpr=1,drag=null,shift=false,space=false,DL=null,q=0,started=false;
@@ -506,14 +511,22 @@ async function dl(name,data){
   if(!DL){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:name.endsWith('.svg')?'image/svg+xml':'application/octet-stream'}));a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1e4);say('Saved '+name);return}
   try{await DL.save({filename:name,data});say('Saved '+name)}
   catch(e){if(e&&e.code=='rejected_extension')say('This viewer can only save certain file types.');else if(!e||e.code!='declined')say('Could not save: '+((e&&e.message)||'unavailable'))}}
-on('#bSave',()=>dl('drawing.nja',JSON.stringify(toFile(),null,1)));
-on('#bSvg',()=>{if(!E.length)say('Draw something first.');else dl('drawing.svg',toSvg())});
+let dname='drawing';
+const askName=()=>new Promise(r=>{const d=$('#nmDlg'),i=$('#nmIn');i.value=dname;d.returnValue='';d.onclose=()=>r(d.returnValue=='ok'?i.value:null);d.showModal();i.select()});
+$('#nmNo').onclick=()=>$('#nmDlg').close();
+on('#bSave',async()=>{const n=await askName();if(n===null)return;dname=n.replace(/\.nja$/i,'').replace(/[\\\/:*?"<>|]+/g,'').trim()||'drawing';dl(dname+'.nja',JSON.stringify(toFile(),null,1))});
+const mnu=$('#menu'),bmn=$('#bMenu'),mclose=()=>{mnu.classList.add('hide');bmn.setAttribute('aria-expanded','false')};
+bmn.onclick=()=>{if(!mnu.classList.contains('hide'))return mclose();const r=bmn.getBoundingClientRect();mnu.style.left=Math.max(4,r.left)+'px';mnu.style.top=r.bottom+4+'px';$('#mSave').disabled=$('#mSvg').disabled=!E.length;mnu.classList.remove('hide');bmn.setAttribute('aria-expanded','true')};
+mnu.onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;mclose();$({open:'#file',save:'#bSave',svg:'#bSvg'}[b.dataset.a]).click()};
+addEventListener('pointerdown',e=>{if(!mnu.contains(e.target)&&!bmn.contains(e.target))mclose()},true);
+addEventListener('keydown',e=>{if(e.key=='Escape')mclose()});
+on('#bSvg',()=>{if(!E.length)say('Draw something first.');else dl(dname+'.svg',toSvg())});
 $('#file').onchange=async e=>{
   const f=e.target.files[0];e.target.value='';if(!f)return;
   try{
     const d=JSON.parse(await f.text()),r=fromFile(d),n=r.n;
     if(!n.length)return say('No drawing found in that file.');
-    snapshot();E=n;Lay=r.ly;UN=r.un;cl=Lay[0].id;sel.clear();pts=[];persist();fit();ui();say('Opened '+f.name)}
+    snapshot();E=n;Lay=r.ly;UN=r.un;cl=Lay[0].id;sel.clear();pts=[];persist();fit();ui();dname=f.name.replace(/\.[^.]+$/,'')||'drawing';say('Opened '+f.name)}
   catch{say('That file is not a valid drawing.')}};
 let tries=0;
 (function dlInit(){
